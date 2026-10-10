@@ -7,6 +7,7 @@ import Nav from "@/components/Nav";
 import Principles from "@/components/Principles";
 import Problem from "@/components/Problem";
 import Reveal from "@/components/Reveal";
+import StatusStrip from "@/components/StatusStrip";
 import WhoFor from "@/components/WhoFor";
 
 export default function Home() {
@@ -18,6 +19,7 @@ export default function Home() {
       >
         Skip to content
       </a>
+      <StatusStrip />
       <Nav />
       <main id="main">
         <Hero />

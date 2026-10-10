@@ -1,133 +1,180 @@
 type Tone = "ok" | "warn" | "alert";
 
-const stats: { label: string; value: string; tone?: Tone }[] = [
-  { label: "Due this week", value: "48" },
-  { label: "Potentially late", value: "7", tone: "warn" },
-  { label: "Waiting on material", value: "12" },
-  { label: "Past due", value: "4", tone: "alert" },
-];
-
-const rows: {
-  order: string;
-  customer: string;
-  part: string;
-  due: string;
-  status: string;
-  tone: Tone;
-  mobile: boolean;
+const kpis: {
+  label: string;
+  value: string;
+  delta: string;
+  tone?: Exclude<Tone, "ok">;
+  bars: number[];
 }[] = [
-  { order: "48192", customer: "Acme Seals", part: "48217", due: "Oct 14", status: "At risk", tone: "alert", mobile: true },
-  { order: "48201", customer: "Northline Mfg", part: "31109", due: "Oct 15", status: "Waiting on material", tone: "warn", mobile: true },
-  { order: "48233", customer: "Carver Ind.", part: "22740", due: "Oct 16", status: "On track", tone: "ok", mobile: false },
+  { label: "Due this week", value: "48", delta: "+6 wk/wk", bars: [40, 55, 48, 62, 50, 70, 85] },
+  { label: "Potentially late", value: "7", delta: "+2", tone: "warn", bars: [20, 30, 25, 40, 35, 50, 60] },
+  { label: "Waiting on matl", value: "12", delta: "−3", bars: [80, 75, 70, 72, 60, 58, 52] },
+  { label: "Past due", value: "4", delta: "+1", tone: "alert", bars: [10, 20, 15, 25, 30, 28, 40] },
 ];
 
-const valueTone: Record<Tone, string> = {
-  ok: "text-ok",
-  warn: "text-warn",
-  alert: "text-mock-alert-ink",
-};
+const orders: { order: string; customer: string; due: string; status: string; tone: Tone }[] = [
+  { order: "48192", customer: "Acme Seals", due: "Oct 14", status: "At risk", tone: "alert" },
+  { order: "48201", customer: "Northline Mfg", due: "Oct 15", status: "Waiting on matl", tone: "warn" },
+  { order: "48177", customer: "Piedmont Fab", due: "Oct 13", status: "Past due", tone: "alert" },
+  { order: "48210", customer: "Harlow Tool", due: "Oct 15", status: "Waiting on matl", tone: "warn" },
+  { order: "48233", customer: "Carver Ind.", due: "Oct 16", status: "On track", tone: "ok" },
+];
 
-const dotTone: Record<Tone, string> = {
-  ok: "bg-ok",
-  warn: "bg-warn",
-  alert: "bg-alert",
-};
+const load: { name: string; pct: number; tone?: Exclude<Tone, "ok"> }[] = [
+  { name: "CNC-01 Haas VF-4", pct: 94, tone: "alert" },
+  { name: "CNC-02 Okuma", pct: 81, tone: "warn" },
+  { name: "PRS-01 Press 200T", pct: 66 },
+  { name: "MLD-03 Molding", pct: 58 },
+  { name: "ASM-01 Assembly", pct: 42 },
+];
+
+const tabs = ["Overview", "Late orders", "Material", "Work centers"];
+
+const ink: Record<Tone, string> = { ok: "text-text", warn: "text-warn", alert: "text-alert-ink" };
+const fill: Record<Tone, string> = { ok: "bg-ok", warn: "bg-warn", alert: "bg-alert" };
+
+function Corner({ className }: { className: string }) {
+  return <span aria-hidden="true" className={`absolute size-3 border-accent ${className}`} />;
+}
+
+function Rule({ label, meta }: { label: string; meta?: string }) {
+  return (
+    <div className="flex items-center gap-3 text-[10px] tracking-[0.12em] text-muted uppercase">
+      <span className="whitespace-nowrap">{label}</span>
+      <span aria-hidden="true" className="h-px flex-1 bg-rule-soft" />
+      {meta && <span className="whitespace-nowrap">{meta}</span>}
+    </div>
+  );
+}
 
 export default function ProductMock() {
   return (
     <figure className="min-w-0">
-      <div className="overflow-hidden rounded-md border border-mock-border bg-mock-bg font-mono text-mock-text shadow-[0_24px_60px_-30px_rgb(0_0_0/0.6)]">
-        {/* Title bar */}
-        <div className="flex items-center justify-between gap-3 border-b border-mock-border px-4 py-3 text-[11px] tracking-[0.08em] sm:px-5">
-          <span className="truncate uppercase">
-            Mach Applied<span className="hidden text-mock-muted sm:inline"> · Operations</span>
-          </span>
-          <span className="flex shrink-0 items-center gap-2 text-mock-muted">
-            <span aria-hidden="true" className="sync-dot size-1.5 rounded-full bg-ok" />
-            <span className="tabular">
-              Synced 47s ago<span className="hidden sm:inline"> · Read-only</span>
-            </span>
-          </span>
-        </div>
+      <div className="relative">
+        <Corner className="-top-1.5 -left-1.5 border-t border-l" />
+        <Corner className="-top-1.5 -right-1.5 border-t border-r" />
+        <Corner className="-bottom-1.5 -left-1.5 border-b border-l" />
+        <Corner className="-right-1.5 -bottom-1.5 border-r border-b" />
 
-        {/* Stats */}
-        <dl className="grid grid-cols-2 border-b border-mock-border sm:grid-cols-4">
-          {stats.map((s, i) => (
-            <div
-              key={s.label}
-              className={`px-4 py-4 sm:px-5 ${i % 2 === 0 ? "border-r" : ""} ${
-                i < 2 ? "border-b sm:border-b-0" : ""
-              } border-mock-border sm:border-r sm:last:border-r-0`}
-            >
-              <dt className="text-[10.5px] tracking-[0.06em] text-mock-muted uppercase">
-                {s.label}
-              </dt>
-              <dd
-                className={`tabular mt-1.5 text-2xl font-medium ${
-                  s.tone ? valueTone[s.tone] : ""
+        <div className="@container border border-border bg-panel font-mono text-text shadow-[0_40px_80px_-40px_rgb(0_0_0/0.8)]">
+          {/* Header bar */}
+          <div className="flex items-center justify-between gap-3 border-b border-border bg-panel-head px-4 py-2.5 text-[10.5px] tracking-[0.1em] text-muted uppercase">
+            <span className="truncate">
+              <span className="text-text">OPS-01</span>
+              <span className="hidden @sm:inline"> · Overview · Plant 1</span>
+            </span>
+            <span className="flex shrink-0 items-center gap-2">
+              <span aria-hidden="true" className="sync-dot size-1.5 rounded-full bg-ok" />
+              <span className="tabular">
+                Synced 47s ago<span className="hidden @sm:inline"> · Read-only</span>
+              </span>
+            </span>
+          </div>
+
+          {/* Tabs (illustrative, not interactive) */}
+          <div aria-hidden="true" className="flex overflow-hidden border-b border-border text-[11px] tracking-[0.06em] uppercase">
+            {tabs.map((t, i) => (
+              <span
+                key={t}
+                className={`px-4 py-2.5 whitespace-nowrap ${
+                  i === 0 ? "-mb-px border-b-2 border-accent text-text" : "text-muted"
+                } ${i >= 2 ? "hidden @md:inline" : ""
                 }`}
               >
-                {s.value}
-              </dd>
+                {t}
+              </span>
+            ))}
+          </div>
+
+          {/* KPIs */}
+          <dl className="grid grid-cols-2 border-b border-border @lg:grid-cols-4">
+            {kpis.map((k, i) => (
+              <div
+                key={k.label}
+                className={`border-border px-4 py-3.5 ${i % 2 === 0 ? "border-r" : ""} ${
+                  i < 2 ? "max-@lg:border-b" : ""
+                } @lg:not-last:border-r`}
+              >
+                <dt className="truncate text-[10px] tracking-[0.08em] text-muted uppercase">{k.label}</dt>
+                <dd className="mt-1.5 flex items-baseline justify-between gap-2">
+                  <span className={`tabular text-[26px] leading-none font-medium ${k.tone ? ink[k.tone] : ""}`}>
+                    {k.value}
+                  </span>
+                  <span className="tabular text-[10.5px] whitespace-nowrap text-muted">{k.delta}</span>
+                </dd>
+                <dd aria-hidden="true" className="mt-3 flex h-[18px] items-end gap-0.5">
+                  {k.bars.map((h, j) => (
+                    <span
+                      key={j}
+                      style={{ height: `${h}%` }}
+                      className={`flex-1 ${
+                        j === k.bars.length - 1 ? (k.tone ? fill[k.tone] : "bg-muted") : "bg-bar-idle"
+                      }`}
+                    />
+                  ))}
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          {/* Body */}
+          <div className="grid @xl:grid-cols-[minmax(0,1fr)_220px]">
+            <div className="min-w-0 px-4 pt-3.5 pb-4">
+              <Rule label="Late orders" meta="5 of 11" />
+              <table className="tabular mt-2 w-full text-left text-[11.5px]">
+                <caption className="sr-only">Late orders (sample data)</caption>
+                <thead className="text-[9.5px] tracking-[0.08em] text-muted uppercase">
+                  <tr>
+                    <th scope="col" className="py-2 pr-3 font-normal">Order</th>
+                    <th scope="col" className="py-2 pr-3 font-normal">Customer</th>
+                    <th scope="col" className="hidden py-2 pr-3 font-normal @sm:table-cell">Due</th>
+                    <th scope="col" className="py-2 font-normal">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.map((o, i) => (
+                    <tr key={o.order} className={`border-t border-row-rule ${i >= 3 ? "hidden @sm:table-row" : ""}`}>
+                      <td className="py-2 pr-3">{o.order}</td>
+                      <td className="py-2 pr-3 whitespace-nowrap">{o.customer}</td>
+                      <td className="hidden py-2 pr-3 whitespace-nowrap @sm:table-cell">{o.due}</td>
+                      <td className={`py-2 ${ink[o.tone]}`}>
+                        <span className="flex items-center gap-2 whitespace-nowrap">
+                          <span aria-hidden="true" className={`size-1.5 shrink-0 ${fill[o.tone]}`} />
+                          {o.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          ))}
-        </dl>
-        <div className="flex items-baseline justify-between border-b border-mock-border px-4 py-3 text-xs sm:px-5">
-          <span className="tracking-[0.06em] text-mock-muted uppercase">Scheduled value</span>
-          <span className="tabular text-sm">$184,000</span>
-        </div>
-
-        {/* Search */}
-        <div className="px-4 py-4 sm:px-5">
-          <div className="flex items-center gap-2.5 rounded-[3px] border border-mock-border bg-mock-surface px-3 py-2.5 text-xs text-mock-muted">
-            <svg aria-hidden="true" viewBox="0 0 16 16" className="size-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <circle cx="7" cy="7" r="4.5" />
-              <path d="M10.5 10.5 14 14" />
-            </svg>
-            <span className="truncate">Search parts, orders, customers…</span>
+            <div className="border-t border-border px-4 pt-3.5 pb-4 @xl:border-t-0 @xl:border-l">
+              <Rule label="Work center load" />
+              <ul className="mt-3 space-y-3">
+                {load.map((w) => (
+                  <li key={w.name} className="text-[10.5px]">
+                    <div className="flex justify-between gap-2">
+                      <span className="truncate text-text">{w.name}</span>
+                      <span className={`tabular ${w.tone ? ink[w.tone] : "text-muted"}`}>{w.pct}%</span>
+                    </div>
+                    <div aria-hidden="true" className="mt-1.5 h-1 bg-track">
+                      <div style={{ width: `${w.pct}%` }} className={`h-full ${w.tone ? fill[w.tone] : "bg-dim"}`} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-        </div>
 
-        {/* Late orders */}
-        <div className="px-4 pb-4 sm:px-5 sm:pb-5">
-          <div className="flex items-center gap-3 text-[10.5px] tracking-[0.12em] text-mock-muted uppercase">
-            <span>Late orders</span>
-            <span aria-hidden="true" className="h-px flex-1 bg-mock-border" />
+          {/* Footer bar */}
+          <div className="flex justify-between gap-3 border-t border-border bg-panel-head px-4 py-2.5 text-[10px] tracking-[0.1em] text-dim-ink uppercase">
+            <span>Source: ERP (read replica)</span>
+            <span className="tabular">Query 0.18s</span>
           </div>
-          <table className="tabular mt-2 w-full text-left text-xs">
-            <caption className="sr-only">Late orders (sample data)</caption>
-            <thead className="text-[10.5px] tracking-[0.06em] text-mock-muted uppercase">
-              <tr>
-                <th scope="col" className="py-2 pr-3 font-normal">Order</th>
-                <th scope="col" className="py-2 pr-3 font-normal">Customer</th>
-                <th scope="col" className="hidden py-2 pr-3 font-normal sm:table-cell">Part</th>
-                <th scope="col" className="hidden py-2 pr-3 font-normal sm:table-cell">Due</th>
-                <th scope="col" className="py-2 font-normal">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <tr
-                  key={r.order}
-                  className={`border-t border-mock-border ${r.mobile ? "" : "hidden sm:table-row"}`}
-                >
-                  <td className="py-2.5 pr-3">{r.order}</td>
-                  <td className="py-2.5 pr-3 whitespace-nowrap">{r.customer}</td>
-                  <td className="hidden py-2.5 pr-3 sm:table-cell">{r.part}</td>
-                  <td className="hidden py-2.5 pr-3 whitespace-nowrap sm:table-cell">{r.due}</td>
-                  <td className="py-2.5">
-                    <span className="flex items-center gap-2">
-                      <span aria-hidden="true" className={`size-1.5 shrink-0 rounded-full ${dotTone[r.tone]}`} />
-                      {r.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </div>
-      <figcaption className="mt-3 font-mono text-[11px] text-muted">
+      <figcaption className="mt-2.5 font-mono text-[11px] text-muted">
         Illustrative interface. Sample data.
       </figcaption>
     </figure>

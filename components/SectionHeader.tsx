@@ -1,30 +1,43 @@
-type Props = {
+type HeaderProps = {
   index: string;
   label: string;
-  title: string;
+  title: React.ReactNode;
   id: string;
 };
 
-export function Eyebrow({ children }: { children: React.ReactNode }) {
+/** `§01 THE PROBLEM ───────── REF MA-01` */
+export function SectionLabel({ index, label }: { index: string; label: string }) {
   return (
-    <p className="font-mono text-xs font-medium uppercase tracking-[0.16em] text-muted">
-      {children}
+    <p className="flex items-center gap-3.5 font-mono text-[11px] tracking-[0.16em] text-muted uppercase">
+      <span className="text-accent">§{index}</span>
+      <span className="whitespace-nowrap">{label}</span>
+      <span aria-hidden="true" className="h-px flex-1 bg-border" />
+      <span aria-hidden="true" className="hidden whitespace-nowrap text-dim sm:inline">
+        Ref MA-{index}
+      </span>
     </p>
   );
 }
 
-export default function SectionHeader({ index, label, title, id }: Props) {
+export function SectionTitle({ id, children }: { id: string; children: React.ReactNode }) {
   return (
-    <header className="max-w-2xl">
-      <Eyebrow>
-        <span className="text-accent-ink">{index}</span> — {label}
-      </Eyebrow>
-      <h2
-        id={id}
-        className="mt-4 text-3xl font-medium tracking-tight text-balance sm:text-4xl"
-      >
-        {title}
-      </h2>
+    <h2
+      id={id}
+      className="max-w-4xl text-3xl leading-[1.12] font-medium tracking-[-0.025em] text-balance sm:text-4xl"
+    >
+      {children}
+    </h2>
+  );
+}
+
+/** Section label row followed by the section title */
+export default function SectionHeader({ index, label, title, id }: HeaderProps) {
+  return (
+    <header>
+      <SectionLabel index={index} label={label} />
+      <div className="mt-7 sm:mt-9">
+        <SectionTitle id={id}>{title}</SectionTitle>
+      </div>
     </header>
   );
 }
@@ -33,22 +46,54 @@ export function Section({
   id,
   labelledBy,
   children,
-  className = "",
+  last = false,
 }: {
   id?: string;
   labelledBy: string;
   children: React.ReactNode;
-  className?: string;
+  last?: boolean;
 }) {
   return (
-    <section
-      id={id}
-      aria-labelledby={labelledBy}
-      className={`border-t border-border ${className}`}
-    >
-      <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-28" data-reveal>
+    <section id={id} aria-labelledby={labelledBy}>
+      <div
+        className={`mx-auto max-w-6xl px-5 pt-16 sm:px-8 sm:pt-24 ${last ? "pb-16 sm:pb-24" : ""}`}
+        data-reveal
+      >
         {children}
       </div>
     </section>
+  );
+}
+
+/** Bordered console panel */
+export function Panel({
+  children,
+  className = "",
+  as: Tag = "div",
+}: {
+  children: React.ReactNode;
+  className?: string;
+  as?: "div" | "figure" | "form";
+}) {
+  return <Tag className={`border border-border bg-panel ${className}`}>{children}</Tag>;
+}
+
+/** Mono header strip at the top of a panel: label left, meta right */
+export function PanelHeader({
+  left,
+  right,
+  className = "",
+}: {
+  left: React.ReactNode;
+  right?: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`flex items-center justify-between gap-4 border-b border-border px-4 py-2.5 font-mono text-[10.5px] tracking-[0.12em] text-muted uppercase ${className}`}
+    >
+      <span className="min-w-0 truncate">{left}</span>
+      {right && <span className="shrink-0">{right}</span>}
+    </div>
   );
 }
