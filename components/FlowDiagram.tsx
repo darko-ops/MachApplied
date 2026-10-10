@@ -1,38 +1,28 @@
-function Node({ label, emphasis = false }: { label: string; emphasis?: boolean }) {
+import { Panel, PanelHeader } from "./SectionHeader";
+
+function Node({ title, sub, emphasis = false }: { title: string; sub: string; emphasis?: boolean }) {
   return (
     <div
-      className={`flex items-center justify-center rounded-[3px] border px-4 py-3 text-center font-mono text-xs tracking-[0.14em] uppercase whitespace-nowrap ${
-        emphasis
-          ? "border-accent bg-surface text-text"
-          : "border-border bg-surface text-muted"
+      className={`border px-4 py-3.5 font-mono lg:shrink-0 ${
+        emphasis ? "border-accent bg-panel lg:w-[240px]" : "border-border bg-bg lg:w-[220px]"
       }`}
     >
-      {label}
+      <p className="text-xs tracking-[0.14em] text-text uppercase">{title}</p>
+      <p className="mt-1 text-[11px] leading-snug text-muted">{sub}</p>
     </div>
   );
 }
 
-function Arrow({ label, locked = false }: { label?: string; locked?: boolean }) {
+function Connector({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative flex flex-1 flex-col items-center justify-center gap-1.5 py-3 text-muted md:min-w-24 md:px-3 md:py-0">
-      {/* Vertical on mobile, horizontal from md up */}
-      <div className="flex items-center font-mono text-[11px] tracking-[0.08em] md:absolute md:bottom-1/2 md:mb-2.5">
-        {label && (
-          <span className="flex items-center gap-1.5 whitespace-nowrap">
-            {locked && (
-              <svg aria-hidden="true" viewBox="0 0 16 16" className="size-3.5 text-accent-ink" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <rect x="3" y="7" width="10" height="7" rx="1" />
-                <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" />
-              </svg>
-            )}
-            {label}
-          </span>
-        )}
-      </div>
-      <svg aria-hidden="true" viewBox="0 0 80 10" preserveAspectRatio="none" className="hidden h-2.5 w-full md:block" fill="none" stroke="currentColor" strokeWidth="1">
+    <div className="flex flex-1 flex-col items-center justify-center gap-1.5 py-3 text-muted lg:min-w-20 lg:px-4 lg:py-0">
+      <span className="flex items-center gap-1.5 font-mono text-[10.5px] tracking-[0.12em] whitespace-nowrap uppercase">
+        {children}
+      </span>
+      <svg aria-hidden="true" viewBox="0 0 80 10" preserveAspectRatio="none" className="hidden h-2.5 w-full lg:block" fill="none" stroke="currentColor" strokeWidth="1">
         <path d="M0 5h78M74 1.5 78 5l-4 3.5" vectorEffect="non-scaling-stroke" />
       </svg>
-      <svg aria-hidden="true" viewBox="0 0 10 24" className="h-6 w-2.5 md:hidden" fill="none" stroke="currentColor" strokeWidth="1">
+      <svg aria-hidden="true" viewBox="0 0 10 24" className="h-6 w-2.5 lg:hidden" fill="none" stroke="currentColor" strokeWidth="1">
         <path d="M5 0v22M1.5 18.5 5 22l3.5-3.5" />
       </svg>
     </div>
@@ -41,21 +31,28 @@ function Arrow({ label, locked = false }: { label?: string; locked?: boolean }) 
 
 export default function FlowDiagram() {
   return (
-    <figure className="mt-14 rounded-md border border-border p-6 sm:p-8">
+    <Panel as="figure" className="mt-12">
+      <PanelHeader left="Schematic — data path" right="Direction: one-way" />
       <div
         role="img"
-        aria-label="Your ERP connects through a read-only link to Mach Applied, which serves your team."
-        className="flex flex-col items-stretch md:flex-row md:items-center"
+        aria-label="Your ERP connects through a read-only link to Mach Applied, which serves your team by role."
+        className="flex flex-col px-5 py-7 lg:flex-row lg:items-center lg:px-8 lg:py-9"
       >
-        <Node label="Your ERP" />
-        <Arrow label="read-only" locked />
-        <Node label="Mach Applied" emphasis />
-        <Arrow />
-        <Node label="Your team" />
+        <Node title="Your ERP" sub="System of record. Unchanged." />
+        <Connector>
+          <svg aria-hidden="true" viewBox="0 0 16 16" className="size-3.5 text-accent" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <rect x="3" y="7" width="10" height="7" rx="1" />
+            <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" />
+          </svg>
+          Read-only link
+        </Connector>
+        <Node title="Mach Applied" sub="Dedicated, secured environment." emphasis />
+        <Connector>By role</Connector>
+        <Node title="Your team" sub="Sales · Production · Quality · Purchasing" />
       </div>
-      <figcaption className="mt-6 font-mono text-[11px] text-muted">
+      <figcaption className="border-t border-border px-4 py-3 font-mono text-[11px] text-muted">
         Data flows one way. Nothing is written back to your ERP.
       </figcaption>
-    </figure>
+    </Panel>
   );
 }

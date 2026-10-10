@@ -2,6 +2,7 @@
 
 import { useId, useState } from "react";
 import { site } from "@/lib/site";
+import { PanelHeader } from "./SectionHeader";
 
 type Field = {
   name: string;
@@ -47,7 +48,7 @@ function toMailto(data: FormData): string {
 }
 
 const inputBase =
-  "mt-2 block w-full rounded-[3px] border bg-bg px-3 py-2.5 text-[15px] text-text placeholder:text-muted focus-visible:border-accent-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent-ink";
+  "mt-1.5 block w-full rounded-none border bg-input-bg px-3 py-2.5 text-sm text-text placeholder:text-muted focus:border-accent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent";
 
 export default function ContactForm() {
   const uid = useId();
@@ -93,12 +94,17 @@ export default function ContactForm() {
 
   if (status === "sent") {
     return (
-      <div role="status" className="rounded-md border border-border bg-surface p-8">
-        <p className="flex items-center gap-2.5 font-mono text-xs tracking-[0.12em] text-muted uppercase">
-          <span aria-hidden="true" className="size-1.5 rounded-full bg-ok" />
-          Received
-        </p>
-        <p className="mt-4 text-xl font-medium">
+      <div role="status" className="self-start border border-border bg-panel">
+        <PanelHeader
+          left="Request — discovery visit"
+          right={
+            <span className="flex items-center gap-2 text-ok">
+              <span aria-hidden="true" className="size-1.5 rounded-full bg-ok" />
+              Received
+            </span>
+          }
+        />
+        <p className="px-5 py-8 text-xl font-medium">
           Thanks — we’ll be in touch within one business day.
         </p>
       </div>
@@ -109,13 +115,14 @@ export default function ContactForm() {
     <form
       noValidate
       onSubmit={onSubmit}
-      aria-describedby={`${uid}-note`}
-      className="rounded-md border border-border bg-surface p-6 sm:p-8"
+      aria-label="Request a discovery visit"
+      className="relative self-start border border-border bg-panel"
     >
-      <p id={`${uid}-note`} className="font-mono text-[11px] text-muted">
-        Fields marked * are required.
-      </p>
-      <div className="mt-5 grid gap-5 sm:grid-cols-2">
+      <PanelHeader
+        left="Request — discovery visit"
+        right={<span id={`${uid}-note`}>* required</span>}
+      />
+      <div className="grid gap-4 p-5 sm:grid-cols-2">
         {fields.map((f) => {
           const id = `${uid}-${f.name}`;
           const err = errors[f.name];
@@ -130,16 +137,15 @@ export default function ContactForm() {
           };
           return (
             <div key={f.name} className={f.wide ? "sm:col-span-2" : undefined}>
-              <label htmlFor={id} className="text-sm font-medium">
+              <label
+                htmlFor={id}
+                className="font-mono text-[10.5px] tracking-[0.1em] text-muted uppercase"
+              >
                 {f.label}
-                {f.required ? (
-                  <span aria-hidden="true" className="text-muted"> *</span>
-                ) : (
-                  <span className="font-normal text-muted"> (optional)</span>
-                )}
+                {f.required && <span aria-hidden="true"> *</span>}
               </label>
               {f.type === "textarea" ? (
-                <textarea {...props} rows={4} className={`${props.className} resize-y`} />
+                <textarea {...props} rows={3} className={`${props.className} resize-y`} />
               ) : (
                 <input {...props} type={f.type ?? "text"} />
               )}
@@ -161,34 +167,36 @@ export default function ContactForm() {
         </label>
       </div>
 
-      <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div aria-live="polite" className="px-5 text-sm text-muted empty:hidden">
+        {status === "mailto" && (
+          <p className="pb-4">
+            Your email app should open with these details. If it didn’t, write to{" "}
+            <a href={`mailto:${site.email}`} className="text-text underline underline-offset-4">
+              {site.email}
+            </a>
+            .
+          </p>
+        )}
+        {status === "error" && (
+          <p className="pb-4 text-alert-ink">
+            Something went wrong sending the form. Email{" "}
+            <a href={`mailto:${site.email}`} className="underline underline-offset-4">
+              {site.email}
+            </a>{" "}
+            instead.
+          </p>
+        )}
+      </div>
+
+      <div className="flex flex-col-reverse gap-4 border-t border-border px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between">
+        <p className="font-mono text-[11px] text-muted">Reply within one business day.</p>
         <button
           type="submit"
           disabled={status === "submitting"}
-          className="rounded-[3px] bg-accent px-5 py-3 text-base font-medium text-on-accent transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-70"
+          className="rounded-[2px] bg-accent px-5 py-3 text-[15px] font-medium text-on-accent transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-70"
         >
           {status === "submitting" ? "Sending…" : "Request a discovery visit"}
         </button>
-        <div aria-live="polite" className="text-sm text-muted">
-          {status === "mailto" && (
-            <p>
-              Your email app should open with these details. If it didn’t, write to{" "}
-              <a href={`mailto:${site.email}`} className="text-text underline underline-offset-4">
-                {site.email}
-              </a>
-              .
-            </p>
-          )}
-          {status === "error" && (
-            <p className="text-alert-ink">
-              Something went wrong sending the form. Email{" "}
-              <a href={`mailto:${site.email}`} className="underline underline-offset-4">
-                {site.email}
-              </a>{" "}
-              instead.
-            </p>
-          )}
-        </div>
       </div>
     </form>
   );
