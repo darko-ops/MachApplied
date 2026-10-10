@@ -1,0 +1,165 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------
+   Tokens — dark-first "industrial steel", light via color scheme
+   --------------------------------------------------------------- */
+:root {
+  color-scheme: dark light;
+
+  --bg: #0e1013;
+  --surface: #16191e;
+  --border: #2a2f36;
+  --text: #e8eaed;
+  --muted: #8b929c;
+  --accent: #e8a33d;
+  /* Accent used as text or focus ring; must hold AA against --bg */
+  --accent-ink: #e8a33d;
+  --on-accent: #0e1013;
+  --grid-line: rgb(232 234 237 / 0.035);
+
+  --ok: #4caf7a;
+  --warn: #e8a33d;
+  --alert: #d9534f;
+  --alert-ink: #ec6f6a;
+
+  /* Product mock is always rendered dark, like the app itself */
+  --mock-bg: #111317;
+  --mock-surface: #181b20;
+  --mock-border: #2a2f36;
+  --mock-text: #e8eaed;
+  --mock-muted: #8b929c;
+  --mock-alert-ink: #ec6f6a;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f4f4f2;
+    --surface: #ffffff;
+    --border: #dadcdf;
+    --text: #14161a;
+    --muted: #5b626c;
+    --accent-ink: #8a5300;
+    --alert-ink: #b3302b;
+    --grid-line: rgb(20 22 26 / 0.045);
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-on-accent: var(--on-accent);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-alert: var(--alert);
+  --color-alert-ink: var(--alert-ink);
+
+  --color-mock-bg: var(--mock-bg);
+  --color-mock-surface: var(--mock-surface);
+  --color-mock-border: var(--mock-border);
+  --color-mock-text: var(--mock-text);
+  --color-mock-muted: var(--mock-muted);
+  --color-mock-alert-ink: var(--mock-alert-ink);
+
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", monospace;
+}
+
+/* ---------------------------------------------------------------
+   Base
+   --------------------------------------------------------------- */
+html {
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-feature-settings: "kern";
+  text-rendering: optimizeLegibility;
+}
+
+section[id] {
+  scroll-margin-top: 4.5rem;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-ink);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+abbr[title] {
+  text-decoration: underline dotted;
+  text-decoration-color: var(--muted);
+  text-underline-offset: 3px;
+  cursor: help;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Blueprint grid — hero only, very low contrast */
+.blueprint {
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: -1px -1px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 35%, #000 40%, transparent 100%);
+}
+
+/* ---------------------------------------------------------------
+   Motion — minimal, and off entirely for reduced motion
+   --------------------------------------------------------------- */
+@keyframes sync-blink {
+  0%, 70%, 100% { opacity: 1; }
+  80%, 90% { opacity: 0.25; }
+}
+
+.sync-dot {
+  animation: sync-blink 2.4s ease-in-out infinite;
+}
+
+[data-reveal] {
+  transition:
+    opacity 180ms ease-out,
+    transform 180ms ease-out;
+}
+
+[data-reveal].is-pending {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  [data-reveal].is-pending {
+    opacity: 1;
+    transform: none;
+  }
+}
